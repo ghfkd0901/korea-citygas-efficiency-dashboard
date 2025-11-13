@@ -1,17 +1,5 @@
 # main.py
 from pathlib import Path
-import streamlit as st
-
-st.set_page_config(page_title="도시가스 대시보드", layout="wide")
-
-st.title("도시가스 대시보드")
-st.caption("전국 도시가스 데이터 · 네비게이션 홈")
-
-st.divider()
-# app_supply_dashboard.py
-# 연간 수요·공급·배관길이 & 각종 비율 (회사/지역 전환 단일 페이지 — 2x3 그래프 배치)
-
-from pathlib import Path
 from io import BytesIO
 
 import numpy as np
@@ -19,12 +7,20 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-# ----------------------------- 경로 설정 -----------------------------
-SUPPLY_CSV = Path(r"D:\Project\전국도시가스용도별수요가수공급량\out\용도별_수요가수_공급량_(2001-현재).csv")
-PIPE_CSV   = Path(r"D:\Project\전국도시가스용도별수요가수공급량\out\배관실적_tidy_all.csv")
+# ----------------------------- 경로 설정 (상대 경로) -----------------------------
+BASE_DIR = Path(__file__).resolve().parent
+OUT_DIR = BASE_DIR / "out"
 
-st.set_page_config(page_title="수요·공급·배관길이 대시보드", layout="wide")
-st.title("연간 수요·공급·배관길이 & 비율 분석 (회사/지역 전환)")
+SUPPLY_CSV = OUT_DIR / "용도별_수요가수_공급량_(2001-현재).csv"
+PIPE_CSV   = OUT_DIR / "배관실적_tidy_all.csv"
+
+# ----------------------------- 기본 페이지 설정 -----------------------------
+st.set_page_config(page_title="도시가스 대시보드", layout="wide")
+
+st.title("도시가스 대시보드")
+st.caption("전국 도시가스 데이터 · 수요·공급·배관길이 효율성 분석")
+
+st.divider()
 
 # ----------------------------- 데이터/사용 방법 설명 (토글) -----------------------------
 with st.expander("📘 사용 설명서 / 데이터 안내", expanded=False):
@@ -277,6 +273,7 @@ chart_height = st.sidebar.slider(
 # 1) supply: 상품/연도/회사/시도 필터 후 집계
 sup_f = supply[
     (supply["상품"].isin(sel_products)) &
+
     (supply["연도"] >= years[0]) &
     (supply["연도"] <= years[1]) &
     (supply["회사"].isin(sel_companies)) &
@@ -369,7 +366,7 @@ st.markdown(f"**선택 상품:** {picked_label}")
 st.markdown(f"**그룹 기준:** {group_by} / **축 컬럼:** `{dim_col}`")
 st.markdown(f"**공급량 단위:** {supply_unit}")
 
-# ----------------------------- 6개 그래프 (2 x 3 배치) -----------------------------
+# ----------------------------- 6개 그래프 (3 x 2 배치) -----------------------------
 def line_chart(df: pd.DataFrame, y_col: str, title: str, y_label: str, container):
     fig = px.line(
         df,
@@ -441,21 +438,5 @@ st.caption(
     "04_공급량_수요가수비, 05_공급량_배관길이비, 06_수요가수_배관길이비"
 )
 
-cols = st.columns(2)
-
-with cols[0]:
-    st.subheader("공급량 추이")
-    st.page_link(
-        "pages/전국도시가스공급량추이.py",
-        label="전국도시가스공급량추이", icon="📈"
-    )
-
-with cols[1]:
-    st.subheader("전당공급량 추이")
-    st.page_link(
-        "pages/전국도시가스전당공급량추이.py",
-        label="전국도시가스전당공급량추이", icon="👥"
-    )
-
 st.divider()
-st.caption("※ 실행: 프로젝트 루트에서 `streamlit run main.py`")
+st.caption("※ 로컬 실행: 프로젝트 루트에서 `streamlit run main.py`")
