@@ -59,7 +59,7 @@ with st.expander("📘 사용 설명서 / 데이터 안내", expanded=False):
 
 4. **공급량 단위 선택**
    - 사이드바에서 **`m³` / `천 m³`** 중 하나를 선택할 수 있습니다.
-   - 단위 선택은 **공급량·공급량/수요가수·공급량/배관길이 그래프에만** 적용됩니다.  
+   - 단위 선택은 **공급량·전당 공급량·m당 공급량 그래프에만** 적용됩니다.  
      (다운로드 엑셀 데이터는 m³ 기준으로 유지)
 
 ---
@@ -69,9 +69,12 @@ with st.expander("📘 사용 설명서 / 데이터 안내", expanded=False):
 1. **수요가수 추이**
 2. **공급량 추이** (단위: m³ 또는 천 m³)
 3. **배관길이 추이**
-4. **공급량 / 수요가수** (단위: m³/계량기 또는 천 m³/계량기)
-5. **공급량 / 배관길이** (단위: m³/m 또는 천 m³/m)
-6. **수요가수 / 배관길이** (단위: 계량기/m)
+4. **전당 공급량** — 공급량 / 수요가수  
+   (단위: m³/계량기 또는 천 m³/계량기)
+5. **m당 공급량** — 공급량 / 배관길이  
+   (단위: m³/m 또는 천 m³/m)
+6. **m당 전수** — 수요가수 / 배관길이  
+   (단위: 계량기/m)
         """
     )
 
@@ -273,7 +276,6 @@ chart_height = st.sidebar.slider(
 # 1) supply: 상품/연도/회사/시도 필터 후 집계
 sup_f = supply[
     (supply["상품"].isin(sel_products)) &
-
     (supply["연도"] >= years[0]) &
     (supply["연도"] <= years[1]) &
     (supply["회사"].isin(sel_companies)) &
@@ -343,21 +345,21 @@ grouped["공급량/수요가수"]   = grouped["공급량(m3)"] / den_demand
 grouped["공급량/배관길이"]   = grouped["공급량(m3)"] / den_length
 grouped["수요가수/배관길이"] = grouped["수요가수"]     / den_length
 
-# 단위에 따른 표시 컬럼
+# 단위에 따른 표시 컬럼 + 라벨
 if supply_unit == "m³":
     grouped["공급량_표시"] = grouped["공급량(m3)"]
     grouped["공급량/수요가수_표시"] = grouped["공급량/수요가수"]
     grouped["공급량/배관길이_표시"] = grouped["공급량/배관길이"]
     sup_label    = "공급량 (m³)"
-    ratio1_label = "공급량 / 수요가수 (m³/계량기)"
-    ratio2_label = "공급량 / 배관길이 (m³/m)"
+    ratio1_label = "전당 공급량 (m³/계량기)"
+    ratio2_label = "m당 공급량 (m³/m)"
 else:
     grouped["공급량_표시"] = grouped["공급량(m3)"] / 1000.0
     grouped["공급량/수요가수_표시"] = grouped["공급량/수요가수"] / 1000.0
     grouped["공급량/배관길이_표시"] = grouped["공급량/배관길이"] / 1000.0
     sup_label    = "공급량 (천 m³)"
-    ratio1_label = "공급량 / 수요가수 (천 m³/계량기)"
-    ratio2_label = "공급량 / 배관길이 (천 m³/m)"
+    ratio1_label = "전당 공급량 (천 m³/계량기)"
+    ratio2_label = "m당 공급량 (천 m³/m)"
 
 grouped = grouped.sort_values(["연도", dim_col])
 
@@ -403,18 +405,18 @@ def line_chart(df: pd.DataFrame, y_col: str, title: str, y_label: str, container
 
 # 1,2
 col1, col2 = st.columns(2)
-line_chart(grouped, "수요가수",                "1) 수요가수 추이",           "수요가수 (계량기 수)",          col1)
-line_chart(grouped, "공급량_표시",            "2) 공급량 추이",             sup_label,                    col2)
+line_chart(grouped, "수요가수",                "1) 수요가수 추이",                      "수요가수 (계량기 수)",          col1)
+line_chart(grouped, "공급량_표시",            "2) 공급량 추이",                        sup_label,                    col2)
 
 # 3,4
 col3, col4 = st.columns(2)
-line_chart(grouped, "배관길이(m)",            "3) 배관길이 추이",           "배관길이 (m)",                col3)
-line_chart(grouped, "공급량/수요가수_표시",   "4) 공급량 / 수요가수",       ratio1_label,                 col4)
+line_chart(grouped, "배관길이(m)",            "3) 배관길이 추이",                      "배관길이 (m)",                col3)
+line_chart(grouped, "공급량/수요가수_표시",   "4) 전당 공급량 (공급량 / 수요가수)",    ratio1_label,                 col4)
 
 # 5,6
 col5, col6 = st.columns(2)
-line_chart(grouped, "공급량/배관길이_표시",   "5) 공급량 / 배관길이",       ratio2_label,                 col5)
-line_chart(grouped, "수요가수/배관길이",      "6) 수요가수 / 배관길이",      "수요가수 / 배관길이 (계량기/m)", col6)
+line_chart(grouped, "공급량/배관길이_표시",   "5) m당 공급량 (공급량 / 배관길이)",     ratio2_label,                 col5)
+line_chart(grouped, "수요가수/배관길이",      "6) m당 전수 (수요가수 / 배관길이)",      "m당 전수 (계량기/m)",          col6)
 
 # ----------------------------- 집계 데이터 & 엑셀 다운로드 -----------------------------
 st.markdown("---")
@@ -435,7 +437,7 @@ st.download_button(
 st.caption(
     "※ 시트별 구성: "
     "01_수요가수, 02_공급량_m3, 03_배관길이_m, "
-    "04_공급량_수요가수비, 05_공급량_배관길이비, 06_수요가수_배관길이비"
+    "04_공급량_수요가수비(전당 공급량), 05_공급량_배관길이비(m당 공급량), 06_수요가수_배관길이비(m당 전수)"
 )
 
 st.divider()
