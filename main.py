@@ -15,9 +15,9 @@ SUPPLY_CSV = OUT_DIR / "용도별_수요가수_공급량_(2001-현재).csv"
 PIPE_CSV   = OUT_DIR / "배관실적_tidy_all.csv"
 
 # ----------------------------- 기본 페이지 설정 -----------------------------
-st.set_page_config(page_title="도시가스 대시보드", layout="wide")
+st.set_page_config(page_title="전국 도시가스 효율성 지표 추이", layout="wide")
 
-st.title("도시가스 대시보드")
+st.title("전국 도시가스 효율성 지표 추이")
 st.caption("전국 도시가스 데이터 · 수요·공급·배관길이 효율성 분석")
 
 st.divider()
